@@ -231,7 +231,7 @@ private:
 	OneWire* _wire;
 
 	// reads scratchpad and returns the raw temperature
-	int16_t calculateTemperature(const uint8_t*, uint8_t*);
+	int32_t calculateTemperature(const uint8_t*, uint8_t*);
 
 	void blockTillConversionComplete(uint8_t);
 

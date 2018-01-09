@@ -464,10 +464,10 @@ float DallasTemperature::getTempFByIndex(uint8_t deviceIndex) {
 }
 
 // reads scratchpad and returns fixed-point temperature, scaling factor 2^-7
-int16_t DallasTemperature::calculateTemperature(const uint8_t* deviceAddress,
+int32_t DallasTemperature::calculateTemperature(const uint8_t* deviceAddress,
 		uint8_t* scratchPad) {
 
-	int16_t fpTemperature = (((int16_t) scratchPad[TEMP_MSB]) << 11)
+	int32_t fpTemperature = (((int16_t) scratchPad[TEMP_MSB]) << 11)
 			| (((int16_t) scratchPad[TEMP_LSB]) << 3);
 
 	/*
@@ -501,6 +501,13 @@ int16_t DallasTemperature::calculateTemperature(const uint8_t* deviceAddress,
 						/ scratchPad[COUNT_PER_C]);
 	}
 
+	// MAX31850 has different layout of temperature register
+	if ((deviceAddress[0] == DS1825MODEL) && ((scratchPad[CONFIGURATION] & 0xF0) == 0xF0)) {
+		int8_t temp_msb = scratchPad[TEMP_MSB];
+		int8_t temp_lsb = scratchPad[TEMP_LSB];
+		fpTemperature = (((int32_t) temp_msb) << 11) | (((int32_t) temp_lsb) << 3);
+	}
+	
 	return fpTemperature;
 }
 
@@ -509,11 +516,14 @@ int16_t DallasTemperature::calculateTemperature(const uint8_t* deviceAddress,
 // the numeric value of DEVICE_DISCONNECTED_RAW is defined in
 // DallasTemperature.h. It is a large negative number outside the
 // operating range of the device
-int16_t DallasTemperature::getTemp(const uint8_t* deviceAddress) {
+int32_t DallasTemperature::getTemp(const uint8_t* deviceAddress) {
 
 	ScratchPad scratchPad;
 	if (isConnected(deviceAddress, scratchPad))
-		return calculateTemperature(deviceAddress, scratchPad);
+		if ((deviceAddress[0] == DS1825MODEL) && (scratchPad[0] & 0x1))
+			return DEVICE_DISCONNECTED_RAW;
+		else
+			return calculateTemperature(deviceAddress, scratchPad);
 	return DEVICE_DISCONNECTED_RAW;
 
 }
@@ -594,7 +604,7 @@ float DallasTemperature::toCelsius(float fahrenheit) {
 }
 
 // convert from raw to Celsius
-float DallasTemperature::rawToCelsius(int16_t raw) {
+float DallasTemperature::rawToCelsius(int32_t raw) {
 
 	if (raw <= DEVICE_DISCONNECTED_RAW)
 		return DEVICE_DISCONNECTED_C;
@@ -604,7 +614,7 @@ float DallasTemperature::rawToCelsius(int16_t raw) {
 }
 
 // convert from raw to Fahrenheit
-float DallasTemperature::rawToFahrenheit(int16_t raw) {
+float DallasTemperature::rawToFahrenheit(int32_t raw) {
 
 	if (raw <= DEVICE_DISCONNECTED_RAW)
 		return DEVICE_DISCONNECTED_F;

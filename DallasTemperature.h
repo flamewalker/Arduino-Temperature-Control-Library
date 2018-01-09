@@ -190,10 +190,10 @@ public:
 	static float toCelsius(float);
 
 	// convert from raw to Celsius
-	static float rawToCelsius(int16_t);
+	static float rawToCelsius(int32_t);
 
 	// convert from raw to Fahrenheit
-	static float rawToFahrenheit(int16_t);
+	static float rawToFahrenheit(int32_t);
 
 #if REQUIRESNEW
 

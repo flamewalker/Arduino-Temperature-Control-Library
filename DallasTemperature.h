@@ -108,7 +108,7 @@ public:
 	bool requestTemperaturesByIndex(uint8_t);
 
 	// returns temperature raw value (12 bit integer of 1/128 degrees C)
-	int16_t getTemp(const uint8_t*);
+	int32_t getTemp(const uint8_t*);
 
 	// returns temperature in degrees C
 	float getTempC(const uint8_t*);
